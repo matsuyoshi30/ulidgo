@@ -124,3 +124,7 @@ func cb32(s string) (string, error) {
 	}
 	return string(cbs[num]), nil
 }
+
+// TODO: Monotonicity
+
+// TODO: compare
