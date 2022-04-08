@@ -39,9 +39,6 @@ var now = time.Now
 
 func (u *ULID) setTimestamp() {
 	n := now().UnixMilli()
-	// time.Time.UnixMilli returns int64 (8bytes)
-	// 11111111 22222222 33333333 44444444 55555555 66666666 77777777 88888888
-	// 00000000 00000000 00000000 00000000 00000000 11111111 22222222 33333333 (>> 40) => byte() is 33333333
 	u[0] = byte(n >> 40)
 	u[1] = byte(n >> 32)
 	u[2] = byte(n >> 24)
