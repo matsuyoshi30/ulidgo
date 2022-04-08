@@ -35,10 +35,10 @@ func New() *ULID {
 	return &ulid
 }
 
-var Now = time.Now
+var now = time.Now
 
 func (u *ULID) setTimestamp() {
-	n := Now().UnixMilli()
+	n := now().UnixMilli()
 	// time.Time.UnixMilli returns int64 (8bytes)
 	// 11111111 22222222 33333333 44444444 55555555 66666666 77777777 88888888
 	// 00000000 00000000 00000000 00000000 00000000 11111111 22222222 33333333 (>> 40) => byte() is 33333333
@@ -50,10 +50,10 @@ func (u *ULID) setTimestamp() {
 	u[5] = byte(n)
 }
 
-var Seed = Now().UnixMilli()
+var seed = now().UnixMilli()
 
 func (u *ULID) setRandom() error {
-	_, err := rand.New(rand.NewSource(Seed)).Read(u[6:])
+	_, err := rand.New(rand.NewSource(seed)).Read(u[6:])
 	return err
 }
 
