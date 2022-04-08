@@ -67,16 +67,16 @@ func (u *ULID) String() string {
 		fmt.Fprintf(&ts, "%08b", b)
 	}
 	// TODO: improve
-	fmt.Fprint(&dst, mustCB32(ts.String()[0:5]))
-	fmt.Fprint(&dst, mustCB32(ts.String()[5:10]))
-	fmt.Fprint(&dst, mustCB32(ts.String()[10:15]))
-	fmt.Fprint(&dst, mustCB32(ts.String()[15:20]))
-	fmt.Fprint(&dst, mustCB32(ts.String()[20:25]))
-	fmt.Fprint(&dst, mustCB32(ts.String()[25:30]))
-	fmt.Fprint(&dst, mustCB32(ts.String()[30:35]))
-	fmt.Fprint(&dst, mustCB32(ts.String()[35:40]))
-	fmt.Fprint(&dst, mustCB32(ts.String()[40:45]))
-	fmt.Fprint(&dst, mustCB32(ts.String()[45:48]))
+	fmt.Fprint(&dst, mustCB32(ts.String()[0:3]))
+	fmt.Fprint(&dst, mustCB32(ts.String()[3:8]))
+	fmt.Fprint(&dst, mustCB32(ts.String()[8:13]))
+	fmt.Fprint(&dst, mustCB32(ts.String()[13:18]))
+	fmt.Fprint(&dst, mustCB32(ts.String()[18:23]))
+	fmt.Fprint(&dst, mustCB32(ts.String()[23:28]))
+	fmt.Fprint(&dst, mustCB32(ts.String()[28:33]))
+	fmt.Fprint(&dst, mustCB32(ts.String()[33:38]))
+	fmt.Fprint(&dst, mustCB32(ts.String()[38:43]))
+	fmt.Fprint(&dst, mustCB32(ts.String()[43:48]))
 
 	// encode random field
 	var r strings.Builder

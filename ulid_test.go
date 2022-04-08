@@ -13,5 +13,5 @@ func init() {
 
 func ExampleNew() {
 	fmt.Println(ulidgo.New())
-	// Output: 060032TME0XT7N2G5ZR6AW6TR5
+	// Output: 01G00RPN3GXT7N2G5ZR6AW6TR5
 }
