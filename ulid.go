@@ -32,7 +32,7 @@ func New(ts int64) (*ULID, error) {
 	if err := ulid.setTimestamp(ts); err != nil {
 		return nil, err
 	}
-	if err := ulid.setRandom(); err != nil {
+	if err := ulid.setRandom(ts); err != nil {
 		return nil, err
 	}
 
@@ -54,11 +54,13 @@ func (u *ULID) setTimestamp(ts int64) error {
 	return nil
 }
 
-var seed = time.Now().UnixMilli()
 
-func (u *ULID) setRandom() error {
-	_, err := rand.New(rand.NewSource(seed)).Read(u.b[6:])
-	return err
+func (u *ULID) setRandom(ts int64) error {
+	_, err := rand.New(rand.NewSource(ts)).Read(u.b[6:])
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // String implements fmt.Stringer
