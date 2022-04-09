@@ -26,17 +26,17 @@ type ULID struct {
 }
 
 // New ...
-func New(ts int64) *ULID {
+func New(ts int64) (*ULID, error) {
 	var ulid ULID
 
 	if err := ulid.setTimestamp(ts); err != nil {
-		panic(err)
+		return nil, err
 	}
 	if err := ulid.setRandom(); err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return &ulid
+	return &ulid, nil
 }
 
 func (u *ULID) setTimestamp(ts int64) error {
