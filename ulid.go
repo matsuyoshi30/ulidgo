@@ -2,8 +2,10 @@ package ulidgo
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -54,12 +56,68 @@ func (u *ULID) setTimestamp(ts int64) error {
 	return nil
 }
 
+var (
+	mu       sync.Mutex
+	lasttime int64
+)
 
 func (u *ULID) setRandom(ts int64) error {
-	_, err := rand.New(rand.NewSource(ts)).Read(u.b[6:])
+	if lasttime != ts {
+		_, err := rand.New(rand.NewSource(ts)).Read(u.b[6:])
+		if err != nil {
+			return err
+		}
+		mu.Lock()
+		lasttime = ts
+		mu.Unlock()
+		return nil
+	}
+
+	// increment
+	_, err := rand.New(rand.NewSource(lasttime)).Read(u.b[6:])
 	if err != nil {
 		return err
 	}
+
+	var low uint64
+	err = binary.Read(bytes.NewReader(u.b[8:]), binary.BigEndian, &low)
+	if err != nil {
+		return err
+	}
+
+	lb := new(bytes.Buffer)
+	if low+1 != 0 {
+		err = binary.Write(lb, binary.BigEndian, low+1)
+		if err != nil {
+			return err
+		}
+		copy(u.b[8:], lb.Bytes())
+		return nil
+	}
+
+	var high uint16
+	err = binary.Read(bytes.NewReader(u.b[6:8]), binary.BigEndian, &high)
+	if err != nil {
+		return err
+	}
+
+	if high+1 == 0 {
+		return fmt.Errorf("overflow random value")
+	}
+
+	err = binary.Write(lb, binary.BigEndian, int64(0)) // move up
+	if err != nil {
+		return err
+	}
+	copy(u.b[8:], lb.Bytes())
+
+	hb := new(bytes.Buffer)
+	err = binary.Write(hb, binary.BigEndian, high+1)
+	if err != nil {
+		return err
+	}
+	copy(u.b[6:8], hb.Bytes())
+
 	return nil
 }
 
@@ -164,8 +222,6 @@ func (u *ULID) UnixTime() int64 {
 func (u *ULID) Time() time.Time {
 	return time.Unix(u.UnixTime()/1000, 0).UTC()
 }
-
-// TODO: Monotonicity
 
 // Compare returns an integer comparing two ULID byte slice
 // The result will be 0 if u == target, -1 if u < target and +1 if u > target
