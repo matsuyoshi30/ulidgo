@@ -101,6 +101,16 @@ func cb32(s string) (string, error) {
 	return string(cbs[num]), nil
 }
 
+// UnixTime returns ULID unix timestamp value
+func (u *ULID) UnixTime() int64 {
+	return int64(u[0])<<40 | int64(u[1])<<32 | int64(u[2])<<24 | int64(u[3])<<16 | int64(u[4])<<8 | int64(u[5])
+}
+
+// Time returns UTC converted from ULID unix timestamp value
+func (u *ULID) Time() time.Time {
+	return time.Unix(u.UnixTime()/1000, 0).UTC()
+}
+
 // TODO: Monotonicity
 
 // TODO: compare
