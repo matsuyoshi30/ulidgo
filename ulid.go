@@ -59,6 +59,7 @@ func (u *ULID) setTimestamp(ts int64) error {
 var (
 	mu       sync.Mutex
 	lasttime int64
+	lastrand [10]byte
 )
 
 func (u *ULID) setRandom(ts int64) error {
@@ -69,39 +70,43 @@ func (u *ULID) setRandom(ts int64) error {
 		}
 		mu.Lock()
 		lasttime = ts
+		copy(lastrand[:], u.b[6:])
 		mu.Unlock()
 		return nil
 	}
 
 	// increment
-	_, err := rand.New(rand.NewSource(lasttime)).Read(u.b[6:])
+	var (
+		lo uint64
+		hi uint16
+	)
+	err := binary.Read(bytes.NewReader(lastrand[2:]), binary.BigEndian, &lo)
+	if err != nil {
+		return err
+	}
+	err = binary.Read(bytes.NewReader(lastrand[0:2]), binary.BigEndian, &hi)
 	if err != nil {
 		return err
 	}
 
-	var low uint64
-	err = binary.Read(bytes.NewReader(u.b[8:]), binary.BigEndian, &low)
-	if err != nil {
-		return err
-	}
-
-	lb := new(bytes.Buffer)
-	if low+1 != 0 {
-		err = binary.Write(lb, binary.BigEndian, low+1)
+	lb, hb := new(bytes.Buffer), new(bytes.Buffer)
+	if lo+1 != 0 {
+		err = binary.Write(lb, binary.BigEndian, lo+1)
 		if err != nil {
 			return err
 		}
 		copy(u.b[8:], lb.Bytes())
+
+		err = binary.Write(hb, binary.BigEndian, hi)
+		if err != nil {
+			return err
+		}
+		copy(u.b[6:8], hb.Bytes())
+
 		return nil
 	}
 
-	var high uint16
-	err = binary.Read(bytes.NewReader(u.b[6:8]), binary.BigEndian, &high)
-	if err != nil {
-		return err
-	}
-
-	if high+1 == 0 {
+	if hi+1 == 0 {
 		return fmt.Errorf("overflow random value")
 	}
 
@@ -111,8 +116,7 @@ func (u *ULID) setRandom(ts int64) error {
 	}
 	copy(u.b[8:], lb.Bytes())
 
-	hb := new(bytes.Buffer)
-	err = binary.Write(hb, binary.BigEndian, high+1)
+	err = binary.Write(hb, binary.BigEndian, hi+1)
 	if err != nil {
 		return err
 	}

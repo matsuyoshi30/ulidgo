@@ -31,21 +31,23 @@ func ExampleULID_Time() {
 }
 
 func TestNew(t *testing.T) {
-	now := time.Date(2022, time.April, 8, 1, 2, 30, 45, time.UTC)
-
-	ulid, err := ulidgo.New(now.UnixMilli())
+	ulid, err := ulidgo.New(Now().UnixMilli())
 	if err != nil {
 		t.Error(err)
 	}
-	ulid2, err := ulidgo.New(now.UnixMilli())
+	ulid2, err := ulidgo.New(Now().UnixMilli())
 	if err != nil {
 		t.Error(err)
 	}
 	if ulid.Compare(ulid2.Bytes()) != -1 {
-		t.Errorf("unexpected result of compare")
+		t.Errorf("unexpected result of compare: %d\n", ulid.Compare(ulid2.Bytes()))
 	}
 
-	// TODO: overflow error
+	ts := ulidgo.GenMaxRandomValULID()
+	_, err = ulidgo.New(ts)
+	if err == nil {
+		t.Errorf("want overflow error")
+	}
 }
 
 func TestULID_Compare(t *testing.T) {
