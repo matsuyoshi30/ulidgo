@@ -165,4 +165,8 @@ func (u *ULID) Time() time.Time {
 
 // TODO: Monotonicity
 
-// TODO: compare
+// Compare returns an integer comparing two ULID byte slice
+// The result will be 0 if u == target, -1 if u < target and +1 if u > target
+func (u *ULID) Compare(target []byte) int {
+	return bytes.Compare(u.b[:], target)
+}
