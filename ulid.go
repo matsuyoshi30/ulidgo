@@ -1,6 +1,8 @@
 package ulidgo
 
 import (
+	"bytes"
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -24,10 +26,12 @@ type ULID struct {
 }
 
 // New ...
-func New() *ULID {
+func New(ts int64) *ULID {
 	var ulid ULID
 
-	ulid.setTimestamp()
+	if err := ulid.setTimestamp(ts); err != nil {
+		panic(err)
+	}
 	if err := ulid.setRandom(); err != nil {
 		panic(err)
 	}
@@ -35,19 +39,22 @@ func New() *ULID {
 	return &ulid
 }
 
-var now = time.Now
+func (u *ULID) setTimestamp(ts int64) error {
+	if ts > maxTime {
+		return fmt.Errorf("invalid timestamp value")
+	}
 
-func (u *ULID) setTimestamp() {
-	n := now().UnixMilli()
-	u.b[0] = byte(n >> 40)
-	u.b[1] = byte(n >> 32)
-	u.b[2] = byte(n >> 24)
-	u.b[3] = byte(n >> 16)
-	u.b[4] = byte(n >> 8)
-	u.b[5] = byte(n)
+	u.b[0] = byte(ts >> 40)
+	u.b[1] = byte(ts >> 32)
+	u.b[2] = byte(ts >> 24)
+	u.b[3] = byte(ts >> 16)
+	u.b[4] = byte(ts >> 8)
+	u.b[5] = byte(ts)
+
+	return nil
 }
 
-var seed = now().UnixMilli()
+var seed = time.Now().UnixMilli()
 
 func (u *ULID) setRandom() error {
 	_, err := rand.New(rand.NewSource(seed)).Read(u.b[6:])
@@ -140,6 +147,11 @@ func (u *ULID) encode() {
 	u.e[24] = cbs[((u.b[14]&3)<<3)|((u.b[15]&224)>>5)]
 	u.e[25] = cbs[u.b[15]&31]
 }
+
+const (
+	maxTimeVal = int64(255)
+	maxTime    = maxTimeVal<<40 | maxTimeVal<<32 | maxTimeVal<<24 | maxTimeVal<<16 | maxTimeVal<<8 | maxTimeVal
+)
 
 // UnixTime returns ULID unix timestamp value
 func (u *ULID) UnixTime() int64 {
