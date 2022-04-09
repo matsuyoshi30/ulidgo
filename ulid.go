@@ -25,7 +25,7 @@ type ULID struct {
 	e [26]byte
 }
 
-// New ...
+// New generates new ULID
 func New(ts int64) (*ULID, error) {
 	var ulid ULID
 
