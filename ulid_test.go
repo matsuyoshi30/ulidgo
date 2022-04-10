@@ -50,7 +50,7 @@ func TestNew(t *testing.T) {
 
 	ts := ulidgo.GenMaxRandomValULID()
 	_, err = ulidgo.New(ts)
-	if err == nil {
+	if err != ulidgo.ErrOverflow {
 		t.Errorf("want overflow error")
 	}
 }

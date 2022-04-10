@@ -3,6 +3,7 @@ package ulidgo
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -89,6 +90,8 @@ var (
 			return new(bytes.Buffer)
 		},
 	}
+
+	ErrOverflow = errors.New("overflow random value")
 )
 
 func (u *ULID) setRandom(ts int64) error {
@@ -144,7 +147,7 @@ func (u *ULID) setRandom(ts int64) error {
 	}
 
 	if hi+1 == 0 {
-		return fmt.Errorf("overflow random value")
+		return ErrOverflow
 	}
 
 	err = binary.Write(lb, binary.BigEndian, int64(0)) // move up
