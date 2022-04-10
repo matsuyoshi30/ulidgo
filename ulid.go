@@ -42,6 +42,23 @@ func New(ts int64) (*ULID, error) {
 	return &ulid, nil
 }
 
+// Factory returns a function which generates new ULID
+func Factory() func() *ULID {
+	return func() *ULID {
+		now := time.Now().UnixMilli()
+
+		var ulid ULID
+		if err := ulid.setTimestamp(now); err != nil {
+			panic(err)
+		}
+		if err := ulid.setRandom(now); err != nil {
+			panic(err)
+		}
+
+		return &ulid
+	}
+}
+
 func (u *ULID) setTimestamp(ts int64) error {
 	if ts > maxTime {
 		return fmt.Errorf("invalid timestamp value")

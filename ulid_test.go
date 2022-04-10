@@ -89,3 +89,12 @@ func TestULID_Compare(t *testing.T) {
 		t.Errorf("want +1 but got %d\n", u2.Compare(u1.Bytes()))
 	}
 }
+
+func BenchmarkFactory(b *testing.B) {
+	ulid := ulidgo.Factory()
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ulid()
+	}
+}
