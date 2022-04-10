@@ -92,7 +92,7 @@ var (
 )
 
 func (u *ULID) setRandom(ts int64) error {
-	if lt, ok := lasttime.Load().(int64); ok && lt != ts {
+	if lt, ok := lasttime.Load().(int64); !ok || (ok && lt != ts) {
 		_, err := rand.New(rand.NewSource(ts)).Read(u.b[6:])
 		if err != nil {
 			return err
