@@ -78,6 +78,17 @@ var (
 	mu       sync.RWMutex
 	lasttime atomic.Value
 	lastrand [10]byte
+
+	bufLoPool = sync.Pool{
+		New: func() interface{} {
+			return new(bytes.Buffer)
+		},
+	}
+	bufHiPool = sync.Pool{
+		New: func() interface{} {
+			return new(bytes.Buffer)
+		},
+	}
 )
 
 func (u *ULID) setRandom(ts int64) error {
@@ -107,7 +118,14 @@ func (u *ULID) setRandom(ts int64) error {
 	}
 	mu.RUnlock()
 
-	lb, hb := new(bytes.Buffer), new(bytes.Buffer)
+	lb, hb := bufLoPool.Get().(*bytes.Buffer), bufHiPool.Get().(*bytes.Buffer)
+	defer func() {
+		bufLoPool.Put(lb)
+		bufHiPool.Put(hb)
+	}()
+	lb.Reset()
+	hb.Reset()
+
 	if lo+1 != 0 {
 		err = binary.Write(lb, binary.BigEndian, lo+1)
 		if err != nil {
