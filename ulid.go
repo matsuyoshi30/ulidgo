@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -57,21 +58,19 @@ func (u *ULID) setTimestamp(ts int64) error {
 }
 
 var (
-	mu       sync.Mutex
-	lasttime int64
+	mu       sync.RWMutex
+	lasttime atomic.Value
 	lastrand [10]byte
 )
 
 func (u *ULID) setRandom(ts int64) error {
-	if lasttime != ts {
+	if lt, ok := lasttime.Load().(int64); ok && lt != ts {
 		_, err := rand.New(rand.NewSource(ts)).Read(u.b[6:])
 		if err != nil {
 			return err
 		}
-		mu.Lock()
-		lasttime = ts
-		copy(lastrand[:], u.b[6:])
-		mu.Unlock()
+		lasttime.Store(ts)
+		u.copyLastRand()
 		return nil
 	}
 
@@ -80,6 +79,7 @@ func (u *ULID) setRandom(ts int64) error {
 		lo uint64
 		hi uint16
 	)
+	mu.RLock()
 	err := binary.Read(bytes.NewReader(lastrand[2:]), binary.BigEndian, &lo)
 	if err != nil {
 		return err
@@ -88,6 +88,7 @@ func (u *ULID) setRandom(ts int64) error {
 	if err != nil {
 		return err
 	}
+	mu.RUnlock()
 
 	lb, hb := new(bytes.Buffer), new(bytes.Buffer)
 	if lo+1 != 0 {
@@ -128,7 +129,7 @@ func (u *ULID) setRandom(ts int64) error {
 }
 
 func (u *ULID) copyLastRand() {
-	mu.Lock()
+	mu.Lock() // write lock
 	copy(lastrand[:], u.b[6:])
 	mu.Unlock()
 }

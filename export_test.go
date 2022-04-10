@@ -4,8 +4,8 @@ func GenMaxRandomValULID() int64 {
 	mr := &ULID{
 		b: [16]byte{0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
 	}
-	lasttime = mr.UnixTime()
+	lasttime.Store(mr.UnixTime())
 	copy(lastrand[:], mr.b[6:])
 
-	return lasttime
+	return lasttime.Load().(int64)
 }

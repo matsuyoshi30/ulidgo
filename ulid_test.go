@@ -2,6 +2,7 @@ package ulidgo_test
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -52,6 +53,21 @@ func TestNew(t *testing.T) {
 	if err == nil {
 		t.Errorf("want overflow error")
 	}
+}
+
+func TestNew_Parallel(t *testing.T) {
+	var wg sync.WaitGroup
+	for i := 0; i < 2; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err := ulidgo.New(Now().UnixMilli())
+			if err != nil {
+				t.Error(err)
+			}
+		}()
+	}
+	wg.Wait()
 }
 
 func TestULID_Compare(t *testing.T) {
