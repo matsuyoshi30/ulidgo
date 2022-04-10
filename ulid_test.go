@@ -20,8 +20,12 @@ func ExampleNew_multi() {
 	nt := time.Date(2022, time.April, 8, 1, 2, 30, 45, time.UTC)
 	ulid1, _ := ulidgo.New(nt.UnixMilli())
 	ulid2, _ := ulidgo.New(nt.UnixMilli())
-	fmt.Println(ulid1, ulid2)
-	// Output: 01G03B3C3GCZVQY8TYZAEPCGQ5 01G03B3C3GCZVQY8TYZAEPCGQ6
+	ulid3, _ := ulidgo.New(nt.UnixMilli())
+	fmt.Printf("%s\n%s\n%s\n", ulid1, ulid2, ulid3)
+	// Output:
+	// 01G03B3C3GCZVQY8TYZAEPCGQ5
+	// 01G03B3C3GCZVQY8TYZAEPCGQ6
+	// 01G03B3C3GCZVQY8TYZAEPCGQ7
 }
 
 func ExampleULID_Time() {

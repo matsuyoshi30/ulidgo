@@ -103,6 +103,7 @@ func (u *ULID) setRandom(ts int64) error {
 		}
 		copy(u.b[6:8], hb.Bytes())
 
+		u.copyLastRand()
 		return nil
 	}
 
@@ -122,7 +123,14 @@ func (u *ULID) setRandom(ts int64) error {
 	}
 	copy(u.b[6:8], hb.Bytes())
 
+	u.copyLastRand()
 	return nil
+}
+
+func (u *ULID) copyLastRand() {
+	mu.Lock()
+	copy(lastrand[:], u.b[6:])
+	mu.Unlock()
 }
 
 // String implements fmt.Stringer
