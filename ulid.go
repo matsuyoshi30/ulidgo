@@ -90,9 +90,10 @@ var (
 			return new(bytes.Buffer)
 		},
 	}
-
-	ErrOverflow = errors.New("overflow random value")
 )
+
+// ErrOverflow represents error when overflow random value
+var ErrOverflow = errors.New("overflow random value")
 
 func (u *ULID) setRandom(ts int64) error {
 	if lt, ok := lasttime.Load().(int64); !ok || (ok && lt != ts) {
