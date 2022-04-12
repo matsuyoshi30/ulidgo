@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -184,9 +185,9 @@ func (u *ULID) Bytes() []byte {
 	return u.b[:]
 }
 
-func (u *ULID) encode() {
-	const cbs = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+const cbs = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 
+func (u *ULID) encode() {
 	// encode timestamp field by Crockford's base32
 	//
 	// AAAAAAAA BBBBBBBB CCCCCCCC DDDDDDDD
@@ -258,6 +259,33 @@ func (u *ULID) encode() {
 	u.e[23] = cbs[(u.b[14]&124)>>2]
 	u.e[24] = cbs[((u.b[14]&3)<<3)|((u.b[15]&224)>>5)]
 	u.e[25] = cbs[u.b[15]&31]
+}
+
+var ErrInvalidULIDLen = errors.New("invalid length of ULID")
+
+// Parse parses ULID string and returns the time value it represents.
+func Parse(s string) (time.Time, error) {
+	if len(s) != 26 {
+		return time.Time{}, ErrInvalidULIDLen
+	}
+	b := make([]byte, 10)
+	for i, ss := range s[0:10] {
+		b[i] = byte(strings.IndexRune(cbs, ss))
+	}
+
+	ts := make([]byte, 6)
+	for i, v := range []int64{
+		int64(b[0])<<5 | int64(b[1]),
+		int64(b[2])<<3 | int64(b[3])>>2,
+		int64(b[3])<<6 | int64(b[4])<<1 | int64(b[5])>>4,
+		int64(b[5])<<4 | int64(b[6])>>1,
+		int64(b[6])<<7 | int64(b[7])<<2 | int64(b[8])>>3,
+		int64(b[8])<<5 | int64(b[9]),
+	} {
+		ts[i] = byte(v)
+	}
+
+	return time.Unix((int64(ts[0])<<40|int64(ts[1])<<32|int64(ts[2])<<24|int64(ts[3])<<16|int64(ts[4])<<8|int64(ts[5]))/1000, 0).UTC(), nil
 }
 
 const (

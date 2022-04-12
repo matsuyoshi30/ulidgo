@@ -76,6 +76,39 @@ func TestNew_Parallel(t *testing.T) {
 	wg.Wait()
 }
 
+func TestParse(t *testing.T) {
+	tests := []struct {
+		name string
+		ulid string
+		want time.Time
+		err  error
+	}{
+		{
+			name: "normal",
+			ulid: "01G00RPN3GNQDPDEA8MJAJS8SJ",
+			want: time.Date(2022, time.April, 7, 1, 2, 30, 0, time.UTC),
+		},
+		{
+			name: "invalid length",
+			ulid: "01G00RPN3GNQDPDEA8MJA", // timestamp field is '01G00RPN3G'
+			err:  ulidgo.ErrInvalidULIDLen,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ulidgo.Parse(tt.ulid)
+			if tt.err == nil && err != nil {
+				t.Errorf("unexpected error: %q", err)
+			} else if tt.err != nil && err == nil {
+				t.Errorf("expected error %q but got nil", tt.err)
+			}
+			if !tt.want.Equal(got) {
+				t.Errorf("want %q but got %q", tt.want, got)
+			}
+		})
+	}
+}
+
 func TestULID_Compare(t *testing.T) {
 	u1, err := ulidgo.New(time.Date(2022, time.April, 7, 1, 2, 30, 45, time.UTC).UnixMilli())
 	if err != nil {
