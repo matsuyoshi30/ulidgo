@@ -57,13 +57,19 @@ func TestNew(t *testing.T) {
 
 func TestNew_Parallel(t *testing.T) {
 	var wg sync.WaitGroup
+	got := make(map[string]bool, 0)
 	for i := 0; i < 2; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			_, err := ulidgo.New(Now().UnixMilli())
+			ulid, err := ulidgo.New(Now().UnixMilli())
 			if err != nil {
 				t.Error(err)
+			}
+			if _, ok := got[ulid.String()]; ok {
+				t.Errorf("unexpected result")
+			} else {
+				got[ulid.String()] = true
 			}
 		}()
 	}
