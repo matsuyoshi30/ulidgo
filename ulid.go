@@ -274,15 +274,15 @@ func Parse(s string) (time.Time, error) {
 	}
 
 	ts := make([]byte, 6)
-	for i, v := range []int64{
-		int64(b[0])<<5 | int64(b[1]),
-		int64(b[2])<<3 | int64(b[3])>>2,
-		int64(b[3])<<6 | int64(b[4])<<1 | int64(b[5])>>4,
-		int64(b[5])<<4 | int64(b[6])>>1,
-		int64(b[6])<<7 | int64(b[7])<<2 | int64(b[8])>>3,
-		int64(b[8])<<5 | int64(b[9]),
+	for i, v := range []byte{
+		b[0]<<5 | b[1],
+		b[2]<<3 | b[3]>>2,
+		b[3]<<6 | b[4]<<1 | b[5]>>4,
+		b[5]<<4 | b[6]>>1,
+		b[6]<<7 | b[7]<<2 | b[8]>>3,
+		b[8]<<5 | b[9],
 	} {
-		ts[i] = byte(v)
+		ts[i] = v
 	}
 
 	return time.Unix((int64(ts[0])<<40|int64(ts[1])<<32|int64(ts[2])<<24|int64(ts[3])<<16|int64(ts[4])<<8|int64(ts[5]))/1000, 0).UTC(), nil
