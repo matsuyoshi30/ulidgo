@@ -268,21 +268,19 @@ func Parse(s string) (time.Time, error) {
 	if len(s) != 26 {
 		return time.Time{}, ErrInvalidULIDLen
 	}
+
 	b := make([]byte, 10)
 	for i, ss := range s[0:10] {
 		b[i] = byte(strings.IndexRune(cbs, ss))
 	}
 
-	ts := make([]byte, 6)
-	for i, v := range []byte{
+	ts := []byte{
 		b[0]<<5 | b[1],
 		b[2]<<3 | b[3]>>2,
 		b[3]<<6 | b[4]<<1 | b[5]>>4,
 		b[5]<<4 | b[6]>>1,
 		b[6]<<7 | b[7]<<2 | b[8]>>3,
 		b[8]<<5 | b[9],
-	} {
-		ts[i] = v
 	}
 
 	return time.Unix((int64(ts[0])<<40|int64(ts[1])<<32|int64(ts[2])<<24|int64(ts[3])<<16|int64(ts[4])<<8|int64(ts[5]))/1000, 0).UTC(), nil
